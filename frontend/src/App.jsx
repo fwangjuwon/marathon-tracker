@@ -65,7 +65,7 @@ export default function App() {
         {/* 에러 */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600">
-            ⚠️ {error} — 백엔드 서버가 실행 중인지 확인해주세요 (localhost:8000)
+            ⚠️ 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
           </div>
         )}
 
