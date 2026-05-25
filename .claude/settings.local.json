@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(if \\(-not $?\\) { \"���丮 ����\" })",
+      "PowerShell($bytes = \\(Invoke-WebRequest -Uri \"http://www.roadrun.co.kr/schedule/list.php\" -UseBasicParsing -TimeoutSec 15\\).RawContentStream.ToArray\\(\\); $text = [System.Text.Encoding]::GetEncoding\\(\"euc-kr\"\\).GetString\\($bytes\\); $text.Substring\\(0, 5000\\))",
+      "PowerShell($bytes = \\(Invoke-WebRequest -Uri \"http://www.roadrun.co.kr/schedule/list.php\" -UseBasicParsing -TimeoutSec 15\\).RawContentStream.ToArray\\(\\); $text = [System.Text.Encoding]::GetEncoding\\(\"euc-kr\"\\).GetString\\($bytes\\); $nos = [regex]::Matches\\($text, \"view\\\\.php\\\\?no=\\(\\\\d+\\)\"\\) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique; Write-Host \"고유 대회 수: $\\($nos.Count\\)\"; Write-Host \"첫 5개: $\\($nos[0..4] -join ', '\\)\"; Write-Host \"마지막 5개: $\\($nos[-5..-1] -join ', '\\)\")"
+    ]
+  }
+}

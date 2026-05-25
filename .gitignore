@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Data (크롤링 데이터는 서버에서 생성)
+backend/data/marathons.json
+
+# Node
+node_modules/
+frontend/dist/
+
+# Env
+.env
+.env.local
