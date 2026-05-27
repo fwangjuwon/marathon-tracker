@@ -3,7 +3,13 @@ const REGIONS = [
   "전북", "전남", "광주", "경북", "경남", "대구", "부산", "울산", "제주", "기타",
 ];
 const STATUSES = ["접수예정", "접수중", "접수마감", "완료", "미정"];
-const DISTANCES = ["풀코스", "하프코스", "10KM", "5KM"];
+const DISTANCES = [
+  { label: "풀코스", value: "풀" },
+  { label: "하프코스", value: "하프" },
+  { label: "10km", value: "10km" },
+  { label: "5km", value: "5km" },
+  { label: "기타", value: "기타" },
+];
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 const selectClass =
@@ -12,7 +18,7 @@ const selectClass =
 export default function FilterBar({ filters, onChange }) {
   const set = (key) => (e) => onChange((prev) => ({ ...prev, [key]: e.target.value }));
   const clear = () =>
-    onChange({ region: "", month: "", status: "", distance: "", search: "" });
+    onChange({ region: "", event_month: "", reg_month: "", status: "", distance: "", search: "" });
 
   const activeCount = Object.values(filters).filter(Boolean).length;
 
@@ -39,11 +45,19 @@ export default function FilterBar({ filters, onChange }) {
           ))}
         </select>
 
-        {/* 월 */}
-        <select value={filters.month} onChange={set("month")} className={selectClass}>
-          <option value="">전체 월</option>
+        {/* 개최 월 */}
+        <select value={filters.event_month} onChange={set("event_month")} className={selectClass}>
+          <option value="">개최 월 전체</option>
           {MONTHS.map((m) => (
-            <option key={m} value={m}>{m}월</option>
+            <option key={m} value={m}>개최 {m}월</option>
+          ))}
+        </select>
+
+        {/* 접수 월 */}
+        <select value={filters.reg_month} onChange={set("reg_month")} className={selectClass}>
+          <option value="">접수 월 전체</option>
+          {MONTHS.map((m) => (
+            <option key={m} value={m}>접수 {m}월</option>
           ))}
         </select>
 
@@ -59,7 +73,7 @@ export default function FilterBar({ filters, onChange }) {
         <select value={filters.distance} onChange={set("distance")} className={selectClass}>
           <option value="">전체 거리</option>
           {DISTANCES.map((d) => (
-            <option key={d} value={d}>{d}</option>
+            <option key={d.value} value={d.value}>{d.label}</option>
           ))}
         </select>
 

@@ -1,4 +1,4 @@
-export default function Header({ lastUpdated, onRefresh, crawling, total }) {
+export default function Header({ lastUpdated, total, view, onViewChange }) {
   const formattedTime = lastUpdated
     ? new Date(lastUpdated).toLocaleString("ko-KR", {
         month: "short",
@@ -28,20 +28,29 @@ export default function Header({ lastUpdated, onRefresh, crawling, total }) {
           </div>
         </div>
 
-        <button
-          onClick={onRefresh}
-          disabled={crawling}
-          className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm"
-        >
-          {crawling ? (
-            <>
-              <span className="inline-block animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-              크롤링 중...
-            </>
-          ) : (
-            <>🔄 새로고침</>
-          )}
-        </button>
+        {/* 뷰 전환 토글 */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+          <button
+            onClick={() => onViewChange("list")}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              view === "list"
+                ? "bg-white shadow-sm text-gray-800"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            📋 목록
+          </button>
+          <button
+            onClick={() => onViewChange("calendar")}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              view === "calendar"
+                ? "bg-white shadow-sm text-gray-800"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            📅 캘린더
+          </button>
+        </div>
       </div>
     </header>
   );

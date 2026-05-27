@@ -1,3 +1,4 @@
+import { useState } from "react";
 import StatusBadge from "./StatusBadge";
 
 const DISTANCE_COLORS = {
@@ -37,12 +38,49 @@ function daysUntil(dateStr) {
   return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
 }
 
-function RegCountdown({ regEnd, status }) {
-  if (status !== "접수중" || !regEnd) return null;
-  const days = daysUntil(regEnd);
-  if (days === null || days < 0) return null;
-  if (days === 0) return <span className="text-red-500 text-xs font-bold ml-1">오늘 마감!</span>;
-  return <span className="text-orange-500 text-xs font-semibold ml-1">({days}일 남음)</span>;
+function DdayRow({ marathon: m }) {
+  const regDays  = daysUntil(m.registration_end);
+  const eventDays = daysUntil(m.date);
+
+  const items = [];
+
+  // 접수 마감 카운트다운
+  if (m.status === "접수중" && regDays !== null && regDays >= 0) {
+    const label = regDays === 0 ? "오늘 마감!" : `접수 마감 D-${regDays}`;
+    const style =
+      regDays === 0 ? "bg-red-500 text-white animate-pulse" :
+      regDays <= 3  ? "bg-red-100 text-red-600 border border-red-200" :
+      regDays <= 7  ? "bg-orange-100 text-orange-500 border border-orange-200" :
+                      "bg-green-50 text-green-600 border border-green-200";
+    items.push({ label, style });
+  }
+
+  // 접수 예정: 시작까지 며칠
+  if (m.status === "접수예정" && m.registration_start) {
+    const startDays = daysUntil(m.registration_start);
+    if (startDays !== null && startDays >= 0) {
+      const label = startDays === 0 ? "오늘 접수 시작!" : `접수 시작 D-${startDays}`;
+      items.push({ label, style: "bg-blue-50 text-blue-600 border border-blue-200" });
+    }
+  }
+
+  // 대회까지 D-day (완료/마감 제외)
+  if (m.status !== "완료" && eventDays !== null && eventDays >= 0) {
+    const label = eventDays === 0 ? "🏁 대회 D-DAY!" : `대회 D-${eventDays}`;
+    items.push({ label, style: "bg-gray-100 text-gray-500 border border-gray-200" });
+  }
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map(({ label, style }) => (
+        <span key={label} className={`text-xs font-bold px-2.5 py-1 rounded-lg ${style}`}>
+          {label}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function ActionButton({ marathon: m }) {
@@ -103,13 +141,58 @@ function ActionButton({ marathon: m }) {
   );
 }
 
-export default function MarathonCard({ marathon: m }) {
-  const eventDays = daysUntil(m.date);
+function ShareButton({ marathon: m }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const title = m.name;
+    const text = [
+      `📣 ${m.name}`,
+      `📅 대회일: ${m.date}`,
+      `📍 장소: ${m.location}`,
+      m.registration_start ? `📝 접수: ${m.registration_start} ~ ${m.registration_end ?? "?"}` : null,
+      m.registration_url || m.official_url ? `🔗 ${m.registration_url || m.official_url}` : null,
+    ].filter(Boolean).join("\n");
+    const url = m.registration_url || m.official_url || window.location.href;
+
+    try {
+      if (navigator.share) {
+        // 모바일: 네이티브 공유 시트 (카카오톡 포함)
+        await navigator.share({ title, text, url });
+      } else {
+        // PC: 클립보드 복사
+        await navigator.clipboard.writeText(`${text}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {
+      // 사용자가 취소한 경우 무시
+    }
+  };
+
+  return (
+    <button
+      onClick={handleShare}
+      title="공유하기"
+      className="px-3 text-sm font-medium border border-gray-200 hover:border-yellow-300 hover:bg-yellow-50 text-gray-400 hover:text-yellow-500 py-2 rounded-xl transition-colors relative"
+    >
+      {copied ? "✅" : "📤"}
+      {copied && (
+        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+          복사됨!
+        </span>
+      )}
+    </button>
+  );
+}
+
+export default function MarathonCard({ marathon: m, isFavorite, onToggleFavorite }) {
   const cardStyle = CARD_STYLES[m.status] ?? CARD_STYLES["미정"];
+  const favorited = isFavorite?.(m.id) ?? false;
 
   return (
     <div className={`bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 p-5 flex flex-col gap-3 ${cardStyle}`}>
-      {/* 상태 배지 + D-day */}
+      {/* 상태 배지 + D-day + 하트 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {m.status === "접수중" && (
@@ -120,17 +203,24 @@ export default function MarathonCard({ marathon: m }) {
           )}
           <StatusBadge status={m.status} />
         </div>
-        {eventDays !== null && eventDays >= 0 && (
-          <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
-            {eventDays === 0 ? "D-DAY" : `D-${eventDays}`}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onToggleFavorite?.(m.id)}
+            className="text-lg leading-none transition-transform hover:scale-125"
+            title={favorited ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+          >
+            {favorited ? "❤️" : "🤍"}
+          </button>
+        </div>
       </div>
 
       {/* 대회명 */}
       <h3 className="font-bold text-gray-900 text-base leading-snug line-clamp-2">
         {m.name}
       </h3>
+
+      {/* D-day */}
+      <DdayRow marathon={m} />
 
       {/* 날짜 + 장소 */}
       <div className="flex flex-col gap-1">
@@ -165,7 +255,6 @@ export default function MarathonCard({ marathon: m }) {
           <span className="font-medium text-gray-500">{m.registration_start ?? "?"}</span>
           <span>~</span>
           <span className="font-medium text-gray-500">{m.registration_end ?? "?"}</span>
-          <RegCountdown regEnd={m.registration_end} status={m.status} />
         </div>
       )}
 
@@ -182,6 +271,7 @@ export default function MarathonCard({ marathon: m }) {
             공식
           </a>
         )}
+        <ShareButton marathon={m} />
       </div>
     </div>
   );

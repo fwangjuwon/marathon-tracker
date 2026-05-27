@@ -44,7 +44,8 @@ app.add_middleware(
 @app.get("/api/marathons")
 def get_marathons(
     region: Optional[str] = Query(None),
-    month: Optional[int] = Query(None),
+    event_month: Optional[int] = Query(None),
+    reg_month: Optional[int] = Query(None),
     status: Optional[str] = Query(None),
     distance: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
@@ -54,18 +55,32 @@ def get_marathons(
 
     if region:
         marathons = [m for m in marathons if m.get("region") == region]
-    if month:
-        target = f"-{str(month).zfill(2)}-"
+    if event_month:
+        target = f"-{str(event_month).zfill(2)}-"
         marathons = [m for m in marathons if target in (m.get("date") or "")]
+    if reg_month:
+        target = f"-{str(reg_month).zfill(2)}-"
+        marathons = [m for m in marathons if target in (m.get("registration_start") or "")]
     if status:
         marathons = [m for m in marathons if m.get("status") == status]
     if distance:
-        marathons = [m for m in marathons if any(distance.lower() in d.lower() for d in m.get("distances", []))]
+        if distance == "기타":
+            MAIN_DISTANCES = {"풀", "하프", "10km", "5km"}
+            marathons = [
+                m for m in marathons
+                if any(
+                    not any(main in d.lower() for main in MAIN_DISTANCES)
+                    for d in m.get("distances", [])
+                )
+            ]
+        else:
+            marathons = [m for m in marathons if any(distance.lower() in d.lower() for d in m.get("distances", []))]
     if search:
-        kw = search.lower()
+        kw = search.lower().replace(" ", "")
         marathons = [
             m for m in marathons
-            if kw in (m.get("name") or "").lower() or kw in (m.get("location") or "").lower()
+            if kw in (m.get("name") or "").lower().replace(" ", "")
+            or kw in (m.get("location") or "").lower().replace(" ", "")
         ]
 
     # 상태 우선순위: 접수중 → 접수예정 → 접수마감 → 미정 → 완료
