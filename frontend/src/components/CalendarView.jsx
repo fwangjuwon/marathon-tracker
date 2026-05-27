@@ -195,9 +195,9 @@ export default function CalendarView({ marathons }) {
         })}
       </div>
 
-      {/* 모바일 전용: 선택된 날 상세 */}
+      {/* 선택된 날 상세 (모바일+데스크탑 공통) */}
       {selectedDay && (
-        <div className="sm:hidden mt-3 pt-3 border-t border-gray-100">
+        <div className="mt-3 pt-3 border-t border-gray-100">
           <p className="text-sm font-bold text-gray-700 mb-2">
             {month + 1}월 {selectedDay}일 · {selectedItems.length}개
           </p>
@@ -242,7 +242,7 @@ export default function CalendarView({ marathons }) {
           <div className="w-2 h-2 rounded-full bg-red-400" />
           <span className="text-xs text-gray-400">마감일</span>
         </div>
-        <span className="text-xs text-gray-300 sm:hidden ml-auto">날짜 탭 → 상세보기</span>
+        <span className="text-xs text-gray-300 ml-auto">날짜 클릭 → 상세보기</span>
       </div>
     </div>
   );
