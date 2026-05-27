@@ -151,7 +151,6 @@ function ShareButton({ marathon: m }) {
       `📅 대회일: ${m.date}`,
       `📍 장소: ${m.location}`,
       m.registration_start ? `📝 접수: ${m.registration_start} ~ ${m.registration_end ?? "?"}` : null,
-      m.registration_url || m.official_url ? `🔗 ${m.registration_url || m.official_url}` : null,
     ].filter(Boolean).join("\n");
     const url = m.registration_url || m.official_url || window.location.href;
 
@@ -161,7 +160,7 @@ function ShareButton({ marathon: m }) {
         await navigator.share({ title, text, url });
       } else {
         // PC: 클립보드 복사
-        await navigator.clipboard.writeText(`${text}`);
+        await navigator.clipboard.writeText(`${text}\n🔗 ${url}`);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
